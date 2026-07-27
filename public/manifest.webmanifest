@@ -1,0 +1,10 @@
+{
+  "name": "PrepPilot",
+  "short_name": "PrepPilot",
+  "description": "Local-first meal prep, recipe planning and macro management.",
+  "start_url": "./#/",
+  "display": "standalone",
+  "background_color": "#0d1210",
+  "theme_color": "#0d1210",
+  "icons": []
+}
