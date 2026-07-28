@@ -1,0 +1,5 @@
+import test from'node:test';import assert from'node:assert/strict';import{readFile}from'node:fs/promises';
+const read=path=>readFile(new URL(`../${path}`,import.meta.url),'utf8');
+test('production entry exposes all primary routes',async()=>{const source=await read('src/main.jsx');for(const route of['/recipes','/planner','/shopping-list','/data-tools'])assert.match(source,new RegExp(route.replace('/','\\/')))});
+test('PWA assets use base-relative paths',async()=>{const[index,sw]=await Promise.all([read('index.html'),read('public/sw.js')]);assert.match(index,/manifest\.webmanifest/);assert.match(sw,/\.\/index\.html/);assert.match(sw,/SKIP_WAITING/)});
+test('release safety modules are wired into the app',async()=>{const source=await read('src/main.jsx');for(const name of['ErrorBoundary','PwaStatus','DataTools','readStored','writeStored'])assert.match(source,new RegExp(name))});
