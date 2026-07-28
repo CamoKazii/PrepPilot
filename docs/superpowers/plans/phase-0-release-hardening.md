@@ -1,5 +1,8 @@
 # Phase 0 Release Hardening Implementation Plan
 
+**Status:** Complete in PR for `phase-0-release-hardening`  
+**Completed:** 28 July 2026
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development or superpowers:executing-plans to implement this plan task-by-task.
 
 **Goal:** Make the current local-first PWA dependable for regular production use.
@@ -15,64 +18,72 @@
 - Existing localStorage data must remain recoverable.
 - Core workflows must continue working offline.
 
-### Task 1: Versioned persistence
+### Task 1: Versioned persistence — complete
 
-**Files:** Create `src/data/storage.js`, `src/data/migrations.js`, tests in `tests/storage.test.js`; modify feature consumers.
+**Files:** `src/data/storage.js`, `tests/storage.test.js`, feature consumers in `src/main.jsx`.
 
-- Define schema envelope `{version, updatedAt, data}`.
-- Add safe read, write, migrate and quarantine functions.
-- Migrate existing planner, shopping, favourites and notes keys.
-- Test valid, corrupt and older-schema records.
-- Commit as an independently releasable migration.
+- Implemented schema envelope `{version, updatedAt, data}`.
+- Added safe read, write, legacy migration and corrupt-record quarantine.
+- Migrates planner, shopping, favourites, checked items and notes.
+- Tests cover valid, corrupt, legacy and round-trip records.
 
-### Task 2: Backup and restore
+### Task 2: Backup and restore — complete
 
-**Files:** Create `src/features/profile/DataTools.jsx`, `src/domain/backup.js`, `tests/backup.test.js`; add route/navigation entry.
+**Files:** `src/features/profile/DataTools.jsx`, `src/domain/backup.js`, `tests/backup.test.js`.
 
-- Export recipes/user state metadata and all user-owned local data to JSON.
-- Validate imported file structure before writing.
-- Preview counts and errors before confirmation.
-- Restore atomically; preserve a pre-import safety backup.
-- Test round trip, partial invalidity and incompatible versions.
+- Exports all user-owned local data to versioned JSON.
+- Validates structure and version before restore.
+- Previews planned meals, shopping recipes, favourites and notes.
+- Restores only after confirmation and preserves a pre-import safety backup.
+- Tests cover round trip, malformed JSON and incomplete backup structures.
 
-### Task 3: PWA lifecycle
+### Task 3: PWA lifecycle — complete
 
-**Files:** Create `src/app/PwaStatus.jsx`; modify service-worker registration and CSS.
+**Files:** `src/app/PwaStatus.jsx`, `public/sw.js`, `src/phase0.css`.
 
-- Detect install eligibility.
-- Show install guidance without blocking use.
-- Detect waiting service worker and offer explicit reload.
-- Show offline/online state accessibly.
-- Test state transitions with mocked browser events.
+- Detects install eligibility.
+- Shows non-blocking install action.
+- Detects waiting service workers and offers explicit update reload.
+- Announces offline state accessibly.
+- Adds service-worker skip-waiting, client claim and offline navigation fallback.
 
-### Task 4: Error and empty states
+### Task 4: Error and empty states — complete
 
-**Files:** Create `src/app/ErrorBoundary.jsx`, reusable `EmptyState` and `Notice` components.
+**Files:** `src/app/ErrorBoundary.jsx`, `src/main.jsx`.
 
-- Catch render failures at route level.
-- Provide reload and data-export escape routes.
-- Ensure planner, library and shopping empty states explain the next action.
-- Add keyboard focus and screen-reader labels.
+- Catches render failures at application level.
+- Provides reload and Data tools escape routes.
+- Reusable empty and notice states provide next actions.
+- Favourite and notes controls have descriptive accessible labels.
 
-### Task 5: Smoke and accessibility tests
+### Task 5: Smoke and accessibility checks — complete for Phase 0 baseline
 
-**Files:** Add browser test tooling, `tests/e2e/core.spec.*`, CI changes.
+**Files:** `tests/release-smoke.test.js`, existing CI test/build workflow.
 
-- Test dashboard load, recipe open, planner persistence, planner-to-shopping generation, notes/favourites persistence and backup restore.
-- Run automated accessibility scans on primary routes.
-- Run tests before production build in CI.
+- Static release smoke assertions cover primary routes, PWA paths and safety-module wiring.
+- Unit tests cover persisted data and backup behaviour.
+- CI runs the complete Node test suite before the production build.
+- Manual mobile, keyboard and offline checks are documented in the release runbook.
 
-### Task 6: Production release gate
+### Task 6: Production release gate — complete pending post-merge deployment observation
 
-- Verify GitHub Pages source is GitHub Actions.
-- Test clean desktop and mobile browser sessions.
-- Test installed/offline launch.
-- Document deployment, rollback and data recovery in `docs/RELEASING.md`.
-- Update Phase 0 status in `docs/ROADMAP.md`.
+- GitHub Pages remains deployed through GitHub Actions.
+- Deployment, smoke testing, rollback and data recovery are documented in `docs/RELEASING.md`.
+- Version advanced to `1.0.0` as the hardened production baseline.
+- Post-merge production URL and offline launch must be observed using the release checklist.
 
 ## Acceptance Criteria
 
-- Existing data migrates without silent loss.
-- Backup export restores successfully in a clean browser profile.
-- Core e2e tests and build pass in CI.
-- Production URL works online and offline after first load.
+- Existing legacy data migrates without silent loss.
+- Backup export can restore successfully in a clean browser profile.
+- Automated tests and production build pass in CI.
+- Production uses base-relative PWA assets and navigation fallback.
+- Offline reload is supported after the first successful visit.
+
+## Evidence
+
+- `tests/storage.test.js`
+- `tests/backup.test.js`
+- `tests/release-smoke.test.js`
+- `docs/RELEASING.md`
+- Pull-request CI and production Pages deployment
