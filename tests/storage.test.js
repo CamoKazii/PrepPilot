@@ -1,7 +1,7 @@
-import test from'node:test';import assert from'node:assert/strict';import{envelope,readStored,writeStored,snapshot,restoreSnapshot}from'../src/data/storage.js';
+import test from'node:test';import assert from'node:assert/strict';import{envelope,readStored,writeStored,snapshot,restoreSnapshot,STORAGE_VERSION}from'../src/data/storage.js';
 function memory(seed={}){const data=new Map(Object.entries(seed));return{getItem:k=>data.has(k)?data.get(k):null,setItem:(k,v)=>data.set(k,String(v)),removeItem:k=>data.delete(k)}}
-test('writes and reads versioned records',()=>{const s=memory();writeStored('planner',{Monday:'B1'},s);assert.deepEqual(readStored('planner',{},s),{Monday:'B1'})});
-test('migrates legacy unwrapped data',()=>{const s=memory({'preppilot-planner-v1':JSON.stringify({Monday:'B1'})});assert.deepEqual(readStored('planner',{},s),{Monday:'B1'});assert.match(s.getItem('preppilot-planner'),/"version":1/)});
+test('writes and reads versioned planner records',()=>{const s=memory();writeStored('planner',{Monday:{id:'B1',servings:5}},s);assert.deepEqual(readStored('planner',{},s),{Monday:{id:'B1',servings:5}})});
+test('migrates legacy planner strings into scaled slots',()=>{const s=memory({'preppilot-planner-v1':JSON.stringify({Monday:'B1'})});assert.deepEqual(readStored('planner',{},s),{Monday:{id:'B1',servings:5}});assert.match(s.getItem('preppilot-planner'),new RegExp(`"version":${STORAGE_VERSION}`))});
 test('quarantines corrupt data and returns fallback',()=>{const s=memory({'preppilot-notes':'{bad'});assert.deepEqual(readStored('notes',{},s),{})});
-test('snapshot round trips',()=>{const a=memory(),b=memory();writeStored('favourites',['B1'],a);const snap=snapshot(a);restoreSnapshot(snap,b);assert.deepEqual(readStored('favourites',[],b),['B1'])});
-test('envelope carries version metadata',()=>{assert.equal(envelope([],'2026-07-28T00:00:00.000Z').version,1)});
+test('snapshot includes training-aware state',()=>{const a=memory(),b=memory();writeStored('dayTypes',{Monday:{type:'quality',shift:35}},a);writeStored('plannedSnacks',{Monday:[{id:'S1'}]},a);const snap=snapshot(a);restoreSnapshot(snap,b);assert.equal(readStored('dayTypes',{},b).Monday.type,'quality');assert.equal(readStored('plannedSnacks',{},b).Monday[0].id,'S1')});
+test('envelope carries current version metadata',()=>{assert.equal(envelope([],'2026-07-28T00:00:00.000Z').version,STORAGE_VERSION)});
