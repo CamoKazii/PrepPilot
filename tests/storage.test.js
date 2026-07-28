@@ -1,0 +1,7 @@
+import test from'node:test';import assert from'node:assert/strict';import{envelope,readStored,writeStored,snapshot,restoreSnapshot}from'../src/data/storage.js';
+function memory(seed={}){const data=new Map(Object.entries(seed));return{getItem:k=>data.has(k)?data.get(k):null,setItem:(k,v)=>data.set(k,String(v)),removeItem:k=>data.delete(k)}}
+test('writes and reads versioned records',()=>{const s=memory();writeStored('planner',{Monday:'B1'},s);assert.deepEqual(readStored('planner',{},s),{Monday:'B1'})});
+test('migrates legacy unwrapped data',()=>{const s=memory({'preppilot-planner-v1':JSON.stringify({Monday:'B1'})});assert.deepEqual(readStored('planner',{},s),{Monday:'B1'});assert.match(s.getItem('preppilot-planner'),/"version":1/)});
+test('quarantines corrupt data and returns fallback',()=>{const s=memory({'preppilot-notes':'{bad'});assert.deepEqual(readStored('notes',{},s),{})});
+test('snapshot round trips',()=>{const a=memory(),b=memory();writeStored('favourites',['B1'],a);const snap=snapshot(a);restoreSnapshot(snap,b);assert.deepEqual(readStored('favourites',[],b),['B1'])});
+test('envelope carries version metadata',()=>{assert.equal(envelope([],'2026-07-28T00:00:00.000Z').version,1)});
