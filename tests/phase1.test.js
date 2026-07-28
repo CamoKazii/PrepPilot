@@ -1,0 +1,16 @@
+import test from'node:test';
+import assert from'node:assert/strict';
+import{scaleQuantity,scaleRecipe}from'../src/domain/quantities/scale.js';
+import{evaluateDay,DEFAULT_TARGETS}from'../src/domain/nutrition/targets.js';
+import{trainingTarget,normaliseCarbShift}from'../src/domain/training/dayTypes.js';
+import{suggestSnacks}from'../src/domain/nutrition/snackSuggestions.js';
+import{snacks}from'../src/data/snacks.js';
+import{calculateDayTotals,normaliseSlot}from'../src/lib/planning.js';
+test('scales metric quantities and ranges',()=>{assert.equal(scaleQuantity('500 g',5,10).value,'1 kg');assert.equal(scaleQuantity('20-30 mL',5,10).value,'40 mL–60 mL');assert.equal(scaleQuantity('to taste',5,10).supported,false)});
+test('scales batch totals while preserving per-serving macros',()=>{const r={id:'X',servings:5,ingredients:[['Rice','500 g']],batchMacros:{calories:1000,protein:100,carbs:150,fat:20},calories:200,protein:20,carbs:30,fat:4};const s=scaleRecipe(r,10);assert.equal(s.batchMacros.calories,2000);assert.equal(s.calories,200);assert.equal(s.ingredients[0][1],'1 kg')});
+test('protein below floor is never acceptable',()=>{const result=evaluateDay({calories:2150,protein:159,carbs:210,fat:70},{targets:DEFAULT_TARGETS,complete:true});assert.equal(result.metrics.protein,'low');assert.equal(result.overall,'needs-attention')});
+test('incomplete days are not assessed on target',()=>{assert.equal(evaluateDay({calories:2150,protein:180,carbs:210,fat:70},{complete:false}).overall,'incomplete')});
+test('quality and long shifts stay within 30 to 40 grams',()=>{assert.equal(normaliseCarbShift('quality',5),30);assert.equal(normaliseCarbShift('long',60),40);assert.equal(trainingTarget(DEFAULT_TARGETS,'quality',35).carbs,245)});
+test('legacy string slots migrate to canonical servings',()=>{const recipes=[{id:'B1',servings:5}];assert.deepEqual(normaliseSlot('B1',recipes),{id:'B1',servings:5})});
+test('day totals use per-serving macros regardless batch scale',()=>{const recipes=[{id:'B1',servings:5,ingredients:[],batchMacros:{calories:1000,protein:100,carbs:100,fat:20},calories:200,protein:20,carbs:20,fat:4}];const total=calculateDayTotals([{id:'B1',servings:10}],recipes);assert.equal(total.calories,200);assert.equal(total.meals,1)});
+test('snack suggestions disclose whether day is fully fixed',()=>{const result=suggestSnacks({calories:1900,protein:130,carbs:180,fat:65},DEFAULT_TARGETS,snacks);assert.ok(result.length<=5);assert.ok(result.every(x=>typeof x.fixesDay==='boolean'));assert.ok(result.every(x=>x.assessment))});
