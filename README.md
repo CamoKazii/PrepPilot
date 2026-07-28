@@ -2,6 +2,14 @@
 
 PrepPilot is a local-first meal-prep and macro-planning PWA built around Cameron's ingredient-audited recipe library.
 
+## Product roadmap
+
+The canonical roadmap, phase status and long-term architecture are maintained in [`docs/ROADMAP.md`](docs/ROADMAP.md).
+
+Detailed phase implementation plans live in [`docs/superpowers/plans/`](docs/superpowers/plans/), and the master architecture specification is in [`docs/superpowers/specs/2026-07-28-preppilot-master-roadmap-design.md`](docs/superpowers/specs/2026-07-28-preppilot-master-roadmap-design.md).
+
+Any pull request that changes product scope, sequencing or phase status should update the roadmap in the same change.
+
 ## Features
 
 - 16 complete five-serving recipes with Australian metric ingredients
