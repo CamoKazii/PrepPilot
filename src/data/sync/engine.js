@@ -1,38 +1,37 @@
 import{createRecord}from'../repositories/records.js';
 import{detectConflict}from'./conflicts.js';
-import{drainQueue,enqueue}from'./queue.js';
+import{enqueue,markFailure}from'./queue.js';
 
-export function recordsFromSnapshot(snapshot,now=new Date().toISOString()){
-  return Object.entries(snapshot).map(([collection,data])=>createRecord(collection,'root',data,now));
-}
-
-export function snapshotFromRecords(records){
-  return Object.fromEntries(records.filter(record=>!record.deletedAt&&record.key==='root').map(record=>[record.collection,structuredClone(record.data)]));
-}
+export const SYNCED_COLLECTIONS=['shopping','planner','checked','favourites','notes','dayTypes','plannedSnacks','weekTemplates','customRecipes','pantry','aliases','manualShopping','recurringShopping','aisleOrder','priceRecords','packageOptions','wasteLog','deductionOverrides'];
 
 function byId(records=[]){return new Map(records.map(record=>[record.id,record]));}
 function same(a,b){return JSON.stringify(a)===JSON.stringify(b);}
+
+export function recordsFromSnapshot(snapshot,now=new Date().toISOString(),baseRecords=[]){
+  const base=byId(baseRecords);
+  return SYNCED_COLLECTIONS.map(collection=>{
+    const id=`${collection}:root`,data=structuredClone(snapshot[collection]??(collection==='notes'||collection==='planner'||collection==='dayTypes'||collection==='plannedSnacks'||collection==='weekTemplates'||collection==='aliases'||collection==='aisleOrder'||collection==='packageOptions'||collection==='deductionOverrides'?{}:[])),prior=base.get(id);
+    if(prior&&same(prior.data,data)&&!prior.deletedAt)return prior;
+    if(prior)return{...prior,data,version:prior.version+1,updatedAt:now,deletedAt:null};
+    return createRecord(collection,'root',data,now);
+  });
+}
+
+export function snapshotFromRecords(records){return Object.fromEntries(records.filter(record=>!record.deletedAt&&record.key==='root').map(record=>[record.collection,structuredClone(record.data)]));}
 
 export function prepareInitialSync(localRecords,remoteRecords,choice){
   const local=byId(localRecords),remote=byId(remoteRecords),ids=new Set([...local.keys(),...remote.keys()]);
   const records=[],conflicts=[];let queue=[];
   for(const id of ids){
     const l=local.get(id),r=remote.get(id);
-    if(choice==='replace-local'){
-      if(r)records.push(r);
-      continue;
-    }
-    if(choice==='replace-cloud'){
-      if(l){records.push(l);queue=enqueue(queue,{recordId:l.id,version:l.version,baseVersion:r?.version||0,type:l.deletedAt?'delete':'put',record:l});}
-      continue;
-    }
+    if(choice==='replace-local'){if(r)records.push(r);continue}
+    if(choice==='replace-cloud'){if(l){const version=r?Math.max(l.version,r.version)+1:l.version,record={...l,version};records.push(record);queue=enqueue(queue,{recordId:record.id,version:record.version,baseVersion:r?.version||0,type:record.deletedAt?'delete':'put',record})}continue}
     if(!l){records.push(r);continue}
     if(!r){records.push(l);queue=enqueue(queue,{recordId:l.id,version:l.version,baseVersion:0,type:l.deletedAt?'delete':'put',record:l});continue}
     if(same(l.data,r.data)&&l.deletedAt===r.deletedAt){records.push(l.version>=r.version?l:r);continue}
-    conflicts.push({conflict:true,base:null,local:l,remote:r,overlap:['root'],preserved:[l,r],reason:'first-sign-in'});
-    records.push(l);
+    conflicts.push({conflict:true,base:null,local:l,remote:r,overlap:['root'],preserved:[l,r],reason:'first-sign-in'});records.push(l);
   }
-  return{records,queue,conflicts,choice};
+  return{records,queue,conflicts,baseRecords:remoteRecords,choice};
 }
 
 export function reconcileRecords(baseRecords,localRecords,remoteRecords){
@@ -54,9 +53,12 @@ export function reconcileRecords(baseRecords,localRecords,remoteRecords){
   return{records,queue,conflicts,baseRecords:remoteRecords};
 }
 
-export async function runSyncCycle(state,remote){
-  const remaining=await drainQueue(state.queue,item=>remote.push(item));
-  const remoteRecords=await remote.listRecords();
-  const reconciled=reconcileRecords(state.baseRecords,state.records,remoteRecords);
-  return{...reconciled,queue:[...remaining,...reconciled.queue],lastSyncedAt:new Date().toISOString()};
+export async function runSyncCycle(state,remote,now=Date.now()){
+  const remaining=[],pushConflicts=[];
+  for(const item of state.queue||[]){
+    if(!['pending','retrying'].includes(item.state)||Date.parse(item.nextAttemptAt)>now){remaining.push(item);continue}
+    try{await remote.push(item)}catch(error){if(error.code==='VERSION_CONFLICT'){pushConflicts.push({conflict:true,base:(state.baseRecords||[]).find(x=>x.id===item.recordId)||null,local:item.record,remote:error.current,overlap:['root'],preserved:[item.record,error.current].filter(Boolean),reason:'version-check'})}else remaining.push(markFailure(item,error,now))}
+  }
+  const remoteRecords=await remote.listRecords(),reconciled=reconcileRecords(state.baseRecords||[],state.records||[],remoteRecords);
+  return{...reconciled,queue:[...remaining,...reconciled.queue],conflicts:[...pushConflicts,...reconciled.conflicts],lastSyncedAt:new Date(now).toISOString()};
 }
