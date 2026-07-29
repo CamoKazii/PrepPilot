@@ -1,0 +1,7 @@
+const DAY=86400000;
+export function priceStatus(record,now=new Date()){if(!record)return'missing';const age=(now-new Date(record.observedAt))/DAY;return age>30?'stale':record.estimated?'estimated':'known'}
+export function unitCost(record){return record&&record.packageSize>0?Number(record.price)/Number(record.packageSize):null}
+export function calculateItemCost(quantity,record){const per=unitCost(record);return per==null?{cost:null,status:'missing'}:{cost:Number((Number(quantity)*per).toFixed(2)),status:priceStatus(record),record}}
+export function calculateCostSummary(items,priceRecords){const byKey=new Map(priceRecords.map(r=>[r.identity,r])),rows=items.map(item=>({...item,...calculateItemCost(item.net??item.quantity,byKey.get(item.identity))}));const known=rows.filter(r=>r.cost!=null).reduce((s,r)=>s+r.cost,0),coverage=rows.length?rows.filter(r=>r.cost!=null).length/rows.length:0;return{rows,total:Number(known.toFixed(2)),coverage:Number((coverage*100).toFixed(0)),missing:rows.filter(r=>r.cost==null).length,stale:rows.filter(r=>r.status==='stale').length}}
+export function recipeCost(ingredients,priceRecords,servings){const summary=calculateCostSummary(ingredients,priceRecords);return{...summary,perServing:servings?Number((summary.total/servings).toFixed(2)):0}}
+export function wasteCost(quantity,record){return calculateItemCost(quantity,record).cost||0}
