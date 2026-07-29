@@ -28,7 +28,12 @@ jobs:
           node-version: 22
       - run: npm install
       - run: npm test
-      - run: npm run build
+      - name: Build production app
+        run: npm run build
+        env:
+          VITE_ENABLE_CLOUD_SYNC: ${{ vars.VITE_ENABLE_CLOUD_SYNC }}
+          VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY }}
       - uses: actions/upload-pages-artifact@v3
         if: github.event_name != 'pull_request'
         with:
