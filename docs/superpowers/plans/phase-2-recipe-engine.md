@@ -1,92 +1,48 @@
 # Phase 2 Recipe Authoring and Macro Engine Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development or superpowers:executing-plans.
+**Status:** Implemented on `phase-2-recipe-engine`  
+**Release:** v1.2.0
 
-**Goal:** Support trustworthy recipe creation, editing, substitutions and versioned macro verification.
+## Goal
 
-**Architecture:** Introduce normalized ingredient and recipe-version entities. A deterministic calculator and validator own publication eligibility; UI forms only collect and display data.
+Support trustworthy recipe creation, editing, substitutions and versioned macro verification.
 
-**Tech Stack:** React, domain modules, local repositories initially, Node tests.
+## Architecture delivered
 
-## Global Constraints
+Normalized ingredient and recipe-version entities now sit behind pure calculation, culinary-check and publication functions. The editor collects data and displays results, but cannot grant ingredient-verified status independently.
 
-- Every caloric ingredient must be included.
+## Completed work
+
+- [x] Stable ingredient/product IDs, names, brands, food states, units, nutrition bases, Australian source levels, effective dates and assumptions.
+- [x] Per-100 g, per-100 mL, per-unit and per-package macro calculation.
+- [x] Ingredient-level audit rows and complete batch/per-serving totals.
+- [x] Macro-derived calorie reconciliation with a blocking variance above 5%.
+- [x] Draft, calculation-complete, culinary-reviewed, ingredient-verified and archived lifecycle model.
+- [x] Material edits create new draft versions and preserve history.
+- [x] Publishing freezes ingredient references and calculated audit results.
+- [x] Custom recipe editor with ingredients, method, storage, reheating, texture and doneness fields.
+- [x] Blocking-issues summary and ingredient-level macro table.
+- [x] Clone, save, publish and historical rollback controls.
+- [x] Audited substitution trail with liquid, retained-fat and baking-structure warnings.
+- [x] High-protein baking ratio checks and baking-vessel validation.
+- [x] Immutable migration representation for existing audited recipes without displayed macro changes.
+- [x] Structured JSON recipe import with record-level errors.
+- [x] Storage schema v3 and backup migration for custom recipe histories.
+- [x] Unit and integration coverage for schema, calculator, lifecycle, substitutions, culinary rules, migration and import.
+- [x] Authoring and recovery documentation.
+
+## Global constraints retained
+
+- Every caloric ingredient must be represented by a catalogue product.
 - Raw, cooked, dry, drained, edible and packaged states cannot be mixed silently.
 - Per-serving values equal batch totals divided by actual servings.
-- Calorie reconciliation over about 5% blocks verification pending investigation.
+- Calorie reconciliation above 5% blocks publication.
 - Material changes invalidate prior verification.
 
-### Task 1: Ingredient catalogue schema
-
-**Files:** Create `src/domain/ingredients/schema.js`, repository and tests.
-
-- Define stable ingredient/product IDs, display name, brand, state, unit basis, nutrient basis, source and effective date.
-- Support per-100 g, per-100 mL, per-unit and per-package nutrition.
-- Record Australian source hierarchy and material assumptions.
-- Validate missing or incompatible fields.
-
-### Task 2: Deterministic macro calculator
-
-**Files:** Create `src/domain/nutrition/calculateRecipe.js`, reconciliation helpers and tests.
-
-- Calculate each ingredient independently.
-- Sum batch calories, protein, carbohydrate and fat.
-- Divide by actual serving count.
-- Calculate macro-derived calories and percentage variance.
-- Return a complete audit table and blocking issues.
-
-### Task 3: Recipe lifecycle and versioning
-
-**Files:** Create `src/domain/recipes/versioning.js`, recipe repository and migration.
-
-- States: draft, calculation-complete, culinary-reviewed, ingredient-verified, archived.
-- Every edit creates or updates a draft version.
-- Publishing freezes ingredient/product references and assumptions.
-- Preserve prior versions for inspection and rollback.
-
-### Task 4: Recipe authoring UI
-
-**Files:** Create feature components under `src/features/recipes/editor/`.
-
-- Step through identity, servings/equipment, ingredients, method, storage/reheat, culinary review and macro audit.
-- Provide inline validation and a blocking-issues summary.
-- Prevent verified labels until all gates pass.
-- Support cloning an existing recipe into a new draft.
-
-### Task 5: Substitution workflow
-
-**Files:** Create `src/domain/recipes/substitute.js`, UI and tests.
-
-- Replace an ingredient/product while retaining an audit trail.
-- Recalculate the entire recipe automatically.
-- Flag changes affecting liquid balance, retained fat, pan depth or cooking method.
-- Require renewed culinary and macro review before publication.
-
-### Task 6: Culinary feasibility rules
-
-**Files:** Create `src/domain/recipes/culinaryChecks.js`, tests and editor panel.
-
-- Encode high-protein baking warnings for excessive whey, egg white and low-fat dairy.
-- Validate baking dish area, depth, material and oven mode.
-- Capture intended texture and doneness cues.
-- Treat rule output as warnings or blockers according to severity; require explicit resolution notes.
-
-### Task 7: Import and migration
-
-- Migrate current audited recipes into versioned entities without changing displayed macros.
-- Verify audit totals against current records.
-- Provide a structured JSON import format with record-level errors.
-
-### Task 8: Release validation
-
-- Unit-test every calculator branch and validation rule.
-- Integration-test draft → verify → substitute → reverify.
-- E2E test creating and publishing a recipe.
-- Update roadmap and authoring documentation.
-
-## Acceptance Criteria
+## Acceptance criteria
 
 - Incomplete recipes cannot display ingredient-verified status.
-- Ingredient audit totals reconcile with published batch/per-serving values.
+- Ingredient audit totals reconcile with published batch and per-serving values.
 - Any material substitution invalidates verification and triggers full recalculation.
-- Historical verified versions remain available.
+- Historical verified versions remain inspectable and recoverable.
+- Production tests and build must pass before merge.
