@@ -2,7 +2,7 @@
 
 **Status:** Canonical product roadmap  
 **Last updated:** 29 July 2026  
-**Current production baseline:** Phase 3 / v1.3.0 — local-first meal-prep PWA with verified recipe authoring, training-aware planning, pantry-aware shopping, package recommendations and dated AUD cost tracking.
+**Current production baseline:** Phase 4 / v1.4.0 — local-first meal-prep PWA with verified recipe authoring, training-aware planning, pantry-aware shopping, dated AUD costs, optional accounts and conflict-safe cross-device sync.
 
 ## Product mission
 
@@ -17,6 +17,7 @@ PrepPilot is Cameron's dependable meal-prep operating system: a fast mobile-firs
 5. Core planning, recipes and shopping remain local-first and offline-capable.
 6. Each phase must remain tested, migratable and releasable.
 7. Serving changes are derived from canonical recipes; ingredient, brand or portion-definition changes require full recalculation.
+8. Cloud and AI features remain optional and may never silently discard user data or override deterministic nutrition rules.
 
 ## Phase status
 
@@ -26,8 +27,8 @@ PrepPilot is Cameron's dependable meal-prep operating system: a fast mobile-firs
 | 1 | Serving scaling, target tolerances and run-day planning | Complete | Phase 0 |
 | 2 | Recipe authoring, substitutions and macro engine | Complete | Phase 1 |
 | 3 | Pantry, advanced shopping and cost tracking | Complete | Phase 2 |
-| 4 | Accounts, cloud sync and data portability | Next | Phase 3 |
-| 5 | AI meal planning and nutrition auditing | Planned | Phase 4 |
+| 4 | Accounts, cloud sync and data portability | Complete | Phase 3 |
+| 5 | AI meal planning and nutrition auditing | Next | Phase 4 |
 | 6 | Garmin, progress and health integrations | Planned | Phase 4 |
 | 7 | Polish, accessibility, performance and maintenance | Continuous | All phases |
 
@@ -51,27 +52,31 @@ Detailed plan: [`phase-2-recipe-engine.md`](superpowers/plans/phase-2-recipe-eng
 
 ## Completed Phase 3 — Pantry, shopping and costs
 
-Delivered:
-
-- canonical shopping identities with explicit state, brand and variant separation;
-- user-approved alias rules and unresolved identity handling;
-- pantry inventory with add, consume, adjust, discard, archive and movement history;
-- expiry warnings and pantry-first recipe matching;
-- gross requirement, pantry deduction and net purchase calculations;
-- per-item pantry deduction overrides and non-negative net quantities;
-- manual and recurring shopping items with persistent check state;
-- package-size optimisation that minimises excess before cost;
-- dated AUD price records with retailer and source metadata;
-- known, estimated, stale and missing price coverage;
-- ingredient, recipe, serving and shopping-list cost primitives;
-- waste event logging and estimated waste-cost support;
-- storage schema v4 and backup coverage for all Phase 3 records.
+Delivered canonical shopping identities, pantry movement history, expiry guidance, transparent stock deductions, manual and recurring shopping items, package optimisation, dated AUD price coverage, cost calculations, waste tracking and storage schema v4.
 
 Detailed plan: [`phase-3-pantry-costs.md`](superpowers/plans/phase-3-pantry-costs.md)
 
-## Phase 4 — Accounts, cloud sync and data portability
+## Completed Phase 4 — Accounts, sync and portability
 
-Optional authentication, conflict-aware cloud persistence, offline mutation queue, full export/import, account deletion and permanent local-only mode.
+Delivered:
+
+- permanent local-only mode with no authentication or network dependency;
+- provider-independent versioned record and repository contracts;
+- stable IDs, timestamps, versions and deletion tombstones;
+- optional Supabase passwordless authentication behind a deployment feature flag;
+- user-scoped Postgres records protected by row-level security;
+- optimistic concurrency through version-checked server writes;
+- explicit first-sign-in merge, use-cloud and replace-cloud choices;
+- idempotent offline mutation queue with bounded exponential backoff and visible stuck operations;
+- deterministic independent-field merge and preserved overlapping conflicts;
+- side-by-side whole-record conflict resolution without silent loss;
+- complete account JSON export/import preview;
+- cloud account deletion with a final export and local-data retention;
+- consent history and integration disconnect records;
+- two-device, offline, reconnect, clock-skew and local-only regression tests;
+- storage schema v5 plus privacy, security, incident and provider documentation.
+
+Cloud capability becomes operational after a Supabase project is created, the committed migration is applied and the documented GitHub Pages variables are configured. Without those external deployment values the same build remains fully functional in local-only mode.
 
 Detailed plan: [`phase-4-cloud-sync.md`](superpowers/plans/phase-4-cloud-sync.md)
 
@@ -100,6 +105,7 @@ Detailed plan: [`phase-7-quality-maintenance.md`](superpowers/plans/phase-7-qual
 - `src/features/planner/` — weekly planning, targets and training logic
 - `src/features/shopping/` — consolidation, pantry and cost logic
 - `src/features/profile/` — targets, backups and integrations
+- `src/features/account/` — authentication, sync controls, conflicts and portability
 - `src/domain/` — pure nutrition, quantity and validation rules
 - `src/data/` — repositories, migrations and persistence adapters
 - `tests/` — unit, integration and end-to-end coverage

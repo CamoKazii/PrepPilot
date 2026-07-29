@@ -1,0 +1,5 @@
+import test from'node:test';import assert from'node:assert/strict';import{readFile}from'node:fs/promises';
+const read=path=>readFile(new URL(`../${path}`,import.meta.url),'utf8');
+test('database migration enables user-scoped row-level security',async()=>{const sql=await read('supabase/migrations/20260729_phase4.sql');assert.match(sql,/enable row level security/i);assert.match(sql,/auth\.uid\(\)=user_id/i);assert.match(sql,/apply_user_record/i);assert.match(sql,/current_row\.version<>p_base_version/i)});
+test('browser adapter never references a service-role credential',async()=>{const[source,env]=await Promise.all([read('src/data/sync/supabase.js'),read('.env.example')]);assert.doesNotMatch(source,/service[_-]?role/i);assert.match(env,/Never put a Supabase service-role key/i)});
+test('production entry exposes account route while retaining existing routes',async()=>{const source=await read('src/main-v5.jsx');for(const route of['/account','/recipes','/planner','/shopping-list','/pantry','/data-tools'])assert.match(source,new RegExp(route.replace('/','\\/'))) });

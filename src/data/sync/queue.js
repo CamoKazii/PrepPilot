@@ -1,0 +1,6 @@
+export const QUEUE_STATES=['pending','retrying','stuck','complete'];
+export function enqueue(queue,operation,now=new Date().toISOString()){const id=operation.id||`${operation.recordId}:${operation.version}:${operation.type}`;if(queue.some(x=>x.id===id))return queue;return[...queue,{...operation,id,attempts:0,state:'pending',createdAt:now,nextAttemptAt:now,lastError:null}]}
+export function retryDelay(attempts,baseMs=1000,maxMs=300000){return Math.min(maxMs,baseMs*2**Math.max(0,attempts-1))}
+export function markFailure(item,error,nowMs=Date.now(),maxAttempts=5){const attempts=item.attempts+1,state=attempts>=maxAttempts?'stuck':'retrying';return{...item,attempts,state,lastError:String(error?.message||error),nextAttemptAt:new Date(nowMs+retryDelay(attempts)).toISOString()}}
+export function dueItems(queue,now=new Date().toISOString()){return queue.filter(x=>['pending','retrying'].includes(x.state)&&x.nextAttemptAt<=now)}
+export async function drainQueue(queue,send,now=Date.now()){const next=[];for(const item of queue){if(!['pending','retrying'].includes(item.state)||Date.parse(item.nextAttemptAt)>now){next.push(item);continue}try{await send(item)}catch(error){next.push(markFailure(item,error,now))}}return next}
