@@ -2,7 +2,7 @@
 
 **Status:** Canonical product roadmap  
 **Last updated:** 29 July 2026  
-**Current production baseline:** Phase 4 / v1.4.0 — local-first meal-prep PWA with verified recipe authoring, training-aware planning, pantry-aware shopping, dated AUD costs, optional accounts and conflict-safe cross-device sync.
+**Current production baseline:** Phase 5 / v1.5.0 — local-first meal-prep PWA with verified recipe authoring, training-aware planning, pantry-aware shopping, dated AUD costs, optional sync and guarded AI proposal workflows.
 
 ## Product mission
 
@@ -28,8 +28,8 @@ PrepPilot is Cameron's dependable meal-prep operating system: a fast mobile-firs
 | 2 | Recipe authoring, substitutions and macro engine | Complete | Phase 1 |
 | 3 | Pantry, advanced shopping and cost tracking | Complete | Phase 2 |
 | 4 | Accounts, cloud sync and data portability | Complete | Phase 3 |
-| 5 | AI meal planning and nutrition auditing | Next | Phase 4 |
-| 6 | Garmin, progress and health integrations | Planned | Phase 4 |
+| 5 | AI meal planning and nutrition auditing | Complete | Phase 4 |
+| 6 | Garmin, progress and health integrations | Next | Phase 4 |
 | 7 | Polish, accessibility, performance and maintenance | Continuous | All phases |
 
 ## Completed Phase 0 — Release hardening
@@ -58,31 +58,28 @@ Detailed plan: [`phase-3-pantry-costs.md`](superpowers/plans/phase-3-pantry-cost
 
 ## Completed Phase 4 — Accounts, sync and portability
 
-Delivered:
-
-- permanent local-only mode with no authentication or network dependency;
-- provider-independent versioned record and repository contracts;
-- stable IDs, timestamps, versions and deletion tombstones;
-- optional Supabase passwordless authentication behind a deployment feature flag;
-- user-scoped Postgres records protected by row-level security;
-- optimistic concurrency through version-checked server writes;
-- explicit first-sign-in merge, use-cloud and replace-cloud choices;
-- idempotent offline mutation queue with bounded exponential backoff and visible stuck operations;
-- deterministic independent-field merge and preserved overlapping conflicts;
-- side-by-side whole-record conflict resolution without silent loss;
-- complete account JSON export/import preview;
-- cloud account deletion with a final export and local-data retention;
-- consent history and integration disconnect records;
-- two-device, offline, reconnect, clock-skew and local-only regression tests;
-- storage schema v5 plus privacy, security, incident and provider documentation.
-
-Cloud capability becomes operational after a Supabase project is created, the committed migration is applied and the documented GitHub Pages variables are configured. Without those external deployment values the same build remains fully functional in local-only mode.
+Delivered permanent local-only mode, versioned records, optional Supabase authentication, row-level security, conflict-safe offline sync, full portability, account deletion and storage schema v5. Cloud operation remains deployment-configured and optional.
 
 Detailed plan: [`phase-4-cloud-sync.md`](superpowers/plans/phase-4-cloud-sync.md)
 
-## Phase 5 — AI meal planning and nutrition auditing
+## Completed Phase 5 — AI planning and nutrition auditing
 
-AI may suggest plans and drafts, but deterministic calculations remain authoritative. AI cannot mark recipes verified, and all generated plans must be independently recalculated and approved.
+Delivered:
+
+- strict schemas for plan, snack and recipe-draft proposals;
+- a server-side gateway contract with timeout, feature flag and no browser API secrets;
+- multiple candidate plan generation with deterministic recalculation and ranking;
+- protein-floor, calorie, carbohydrate and fat tolerance checks for every complete day;
+- exact day-level target differences, assumptions and selection reasons;
+- whole-plan or selected-day user approval before planner changes;
+- verified-snack-only ranking with recalculated totals and unresolved-gap disclosure;
+- structured recipe drafts that can only enter the authoring system as drafts;
+- prompt-injection and verification-label bypass rejection;
+- deterministic local proposals whenever AI is disabled or unavailable;
+- provider/model/version history for applied proposals;
+- storage schema v6 and privacy-safe AI history support.
+
+AI becomes operational after a secure server-side gateway is deployed and `VITE_ENABLE_AI` plus `VITE_AI_GATEWAY_URL` are configured. Without them, the same interface provides deterministic local proposals and all core features remain available.
 
 Detailed plan: [`phase-5-ai-planning.md`](superpowers/plans/phase-5-ai-planning.md)
 
@@ -103,6 +100,7 @@ Detailed plan: [`phase-7-quality-maintenance.md`](superpowers/plans/phase-7-qual
 - `src/app/` — routing, providers and shell
 - `src/features/recipes/` — catalogue, detail, scaling and authoring
 - `src/features/planner/` — weekly planning, targets and training logic
+- `src/features/ai/` — guarded proposals, review and approval
 - `src/features/shopping/` — consolidation, pantry and cost logic
 - `src/features/profile/` — targets, backups and integrations
 - `src/features/account/` — authentication, sync controls, conflicts and portability
