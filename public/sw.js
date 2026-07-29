@@ -1,4 +1,4 @@
-const CACHE='preppilot-v6';
+const CACHE='preppilot-v7';
 const CORE=['./','./index.html','./manifest.webmanifest'];
 
 self.addEventListener('install',event=>event.waitUntil(
