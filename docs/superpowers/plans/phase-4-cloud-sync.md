@@ -1,84 +1,95 @@
 # Phase 4 Accounts, Cloud Sync and Data Portability Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development or superpowers:executing-plans.
-
+**Status:** Complete in v1.4.0  
+**Provider:** Optional Supabase adapter behind a deployment feature flag  
 **Goal:** Add optional secure cross-device use without removing local-first operation.
 
-**Architecture:** Introduce repository interfaces and a sync engine before selecting a hosted backend. Local repositories remain authoritative while offline; remote adapters synchronize versioned records through an explicit queue and conflict policy.
+## Global constraints satisfied
 
-**Tech Stack:** React, service worker, selected authentication/backend provider, encrypted HTTPS APIs, automated integration tests.
+- Local-only mode remains fully supported and is the default.
+- Conflicting versions are preserved until an explicit user choice.
+- Full account export and cloud-account deletion are available.
+- No privileged credential is shipped in the browser bundle.
+- Nutrition, planning, pantry and shopping logic remain independent of authentication.
 
-## Global Constraints
+## Completed Task 1: Repository contracts
 
-- Local-only mode remains fully supported.
-- No silent conflict resolution that discards user data.
-- Account deletion and full export are mandatory.
-- Secrets and privileged credentials never ship in the browser bundle.
+Implemented under `src/data/repositories/`:
 
-### Task 1: Repository contracts
+- CRUD, list, subscription and transaction-compatible local adapter;
+- stable collection/key IDs;
+- record versions and timestamps;
+- deletion tombstones;
+- validation and migration tests.
 
-**Files:** Create interfaces/adapters under `src/data/repositories/`, tests.
+## Completed Task 2: Authentication and profile
 
-- Define CRUD, list, subscribe and transaction interfaces for user-owned entities.
-- Wrap existing local persistence behind these contracts.
-- Add stable IDs, record versions, timestamps and deletion tombstones.
-- Verify existing functionality through local adapters before adding remote code.
+- Supabase was selected and documented in `docs/architecture/ADR-0001-cloud-provider.md`.
+- Passwordless email authentication, sign-out and persisted sessions are supported when configured.
+- Local data remains accessible before, during and after authentication.
+- First sign-in requires an explicit merge, use-cloud or replace-cloud decision.
 
-### Task 2: Authentication and profile
+## Completed Task 3: Remote data model and authorization
 
-- Select provider through an architecture decision record.
-- Implement sign-up/sign-in, sign-out, session expiry and passwordless/social options as supported.
-- Keep local data accessible before authentication.
-- Offer explicit merge or replace choices when a user first signs in with existing local data.
+`supabase/migrations/20260729_phase4.sql` defines:
 
-### Task 3: Remote data model and authorization
+- user-scoped versioned records;
+- indexes by user and collection;
+- row-level-security policies for read, insert, update and delete;
+- optimistic concurrency through `apply_user_record`;
+- consent and integration tables;
+- account deletion function.
 
-- Define user-scoped storage for recipes, plans, shopping, notes, favourites, pantry, prices and settings.
-- Enforce server-side authorization per record.
-- Add schema migrations and indexes.
-- Test cross-user access denial.
+Cross-user access is prohibited by `auth.uid() = user_id` policies. Deployment verification steps are documented because a live Supabase project is external to the repository.
 
-### Task 4: Offline mutation queue
+## Completed Task 4: Offline mutation queue
 
-**Files:** Create `src/data/sync/queue.js`, adapters and tests.
+Implemented under `src/data/sync/queue.js`:
 
-- Queue create/update/delete operations while offline.
-- Retry with bounded backoff.
-- Make operations idempotent.
-- Surface stuck or rejected operations to the user.
+- idempotent create, update and delete operation IDs;
+- pending, retrying and stuck states;
+- bounded exponential backoff;
+- visible queue and error state;
+- successful operation removal without duplication.
 
-### Task 5: Conflict detection and resolution
+## Completed Task 5: Conflict detection and resolution
 
-- Detect concurrent edits through record versions.
-- Auto-merge only independent fields with deterministic rules.
-- Present side-by-side choices for overlapping edits.
-- Preserve both versions until resolution.
-- Test clock skew and repeated reconnects.
+- Record versions detect concurrent edits without trusting client clocks.
+- Independent fields merge deterministically.
+- Overlapping edits preserve both local and cloud versions.
+- The account UI presents side-by-side JSON records with explicit local/cloud selection.
+- Two-device, repeated reconnect and clock-skew scenarios are covered by tests.
 
-### Task 6: Data portability and privacy
+## Completed Task 6: Data portability and privacy
 
-- Export all account data in documented JSON.
-- Import to a new account with validation preview.
-- Implement account deletion with clear retention behaviour.
-- Add integration disconnect and consent history.
+- Documented account-export format includes all user records, profile metadata, consent history and integrations.
+- Import validates and previews record, collection, update and conflict counts.
+- Cloud-account deletion triggers a final export and clearly retains local browser data.
+- Integration disconnect and consent history are visible in the account UI.
 
-### Task 7: Observability and security review
+## Completed Task 7: Observability and security review
 
-- Add privacy-safe sync health metrics and structured errors.
-- Run dependency, authorization and client-secret checks.
-- Document incident and recovery procedure.
-- Conduct manual threat review before release.
+- Sync health exposes queued operations, unresolved conflicts and last reconciliation time.
+- Structured errors distinguish safe sync failure and version conflicts.
+- CI checks route wiring, RLS migration content and absence of service-role references in client code.
+- Threat review and incident recovery are documented in `docs/SECURITY_REVIEW_PHASE4.md` and `docs/PRIVACY_AND_SYNC.md`.
 
-### Task 8: Release validation
+## Completed Task 8: Release validation
 
-- E2E test two devices, offline edits, reconnect, conflict and recovery.
-- Verify local-only regression suite.
-- Roll out behind a feature flag.
-- Update roadmap, privacy documentation and support guidance.
+- Two-device offline create, reconnect, conflict preservation and recovery tests added.
+- Local-only mode has a no-provider regression test.
+- Cloud capability is behind `VITE_ENABLE_CLOUD_SYNC`.
+- GitHub Pages accepts optional Supabase repository variables.
+- Storage schema advanced to v5 and prior backup versions remain importable.
+- Roadmap, privacy guidance and deployment instructions updated.
 
-## Acceptance Criteria
+## Acceptance criteria
 
-- Offline-created records synchronize without duplication.
-- Conflicts never cause silent record loss.
-- A full export restores a clean account.
-- Local-only mode remains usable without authentication or network access.
+- Offline-created records synchronize without duplication: covered by `test/phase4-sync.test.js`.
+- Conflicts never cause silent record loss: both versions are preserved and surfaced.
+- A full export can populate a clean local account and then be merged into cloud storage.
+- Local-only mode works without authentication, provider configuration or network access.
+
+## Operational activation
+
+The code path is complete but intentionally disabled in the public deployment until a Supabase project is provisioned. To activate it, apply the committed migration, configure approved authentication redirect URLs and set the three documented GitHub Pages variables. This external provisioning step does not affect local-only functionality.
