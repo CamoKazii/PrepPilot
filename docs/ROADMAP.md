@@ -1,8 +1,8 @@
 # PrepPilot Master Roadmap
 
 **Status:** Canonical product roadmap  
-**Last updated:** 28 July 2026  
-**Current production baseline:** Phase 1 / v1.1.0 — hardened local-first PWA with audited recipes, derived serving scaling, training-aware planning, verified snack suggestions and scaled shopping.
+**Last updated:** 29 July 2026  
+**Current production baseline:** Phase 2 / v1.2.0 — hardened local-first PWA with audited built-in recipes, serving scaling, training-aware planning, versioned custom recipe authoring and deterministic macro verification.
 
 ## Product mission
 
@@ -24,8 +24,8 @@ PrepPilot is Cameron's dependable meal-prep operating system: a fast mobile-firs
 |---|---|---|---|
 | 0 | Release hardening and production validation | Complete | Baseline |
 | 1 | Serving scaling, target tolerances and run-day planning | Complete | Phase 0 |
-| 2 | Recipe authoring, substitutions and macro engine | Next | Phase 1 |
-| 3 | Pantry, advanced shopping and cost tracking | Planned | Phase 2 |
+| 2 | Recipe authoring, substitutions and macro engine | Complete | Phase 1 |
+| 3 | Pantry, advanced shopping and cost tracking | Next | Phase 2 |
 | 4 | Accounts, cloud sync and data portability | Planned | Phase 3 |
 | 5 | AI meal planning and nutrition auditing | Planned | Phase 4 |
 | 6 | Garmin, progress and health integrations | Planned | Phase 4 |
@@ -39,37 +39,26 @@ Detailed plan: [`phase-0-release-hardening.md`](superpowers/plans/phase-0-releas
 
 ## Completed Phase 1 — Scaling and run-day planning
 
-Delivered:
-
-- recipe ingredient and batch scaling from canonical serving counts;
-- explicit derived-value warnings for unsupported free-text quantities;
-- planner slot records containing recipe ID and intended batch servings;
-- scaled planner-to-shopping quantities;
-- exact calorie, protein, carbohydrate and fat variance assessment;
-- calorie ±75 kcal, carbohydrate ±15 g and fat ±7 g tolerances;
-- mandatory protein floor of at least 160 g;
-- rest, easy, quality, long-run, futsal and custom day types;
-- visible 30–40 g carbohydrate shifts for quality and long-run days;
-- reusable week templates and copy-day controls;
-- five ingredient-verified snack records with recalculated gap ranking;
-- storage schema v2 migration and Phase 1 backup compatibility.
+Delivered recipe and batch scaling, training-day targets, exact tolerance evaluation, verified snack suggestions, reusable week templates and scaled shopping with storage schema v2.
 
 Detailed plan: [`phase-1-scaling-run-days.md`](superpowers/plans/phase-1-scaling-run-days.md)
 
-## Phase 2 — Recipe authoring, substitutions and macro engine
+## Completed Phase 2 — Recipe authoring and macro engine
 
-**Goal:** allow new recipes and controlled substitutions without compromising nutrition integrity.
+Delivered:
 
-Scope:
-
-- normalised ingredient catalogue with unit, state, brand and nutrition basis;
-- bottom-up macro calculator and ingredient audit tables;
-- recipe draft, validation and publish states;
-- substitution workflows that invalidate and recalculate macros;
-- baking-vessel and high-protein-bake checks;
-- custom recipe editing, import and version history.
-
-Exit gate: incomplete ingredients, assumptions, serving counts or sanity checks must block publication.
+- normalized ingredient/product records with brand, state, basis, source hierarchy and effective date;
+- per-100 g, per-100 mL, per-unit and per-package calculation support;
+- bottom-up ingredient audit tables and batch/per-serving macro totals;
+- calorie reconciliation with a blocking threshold above 5%;
+- draft, calculation-complete, culinary-reviewed, ingredient-verified and archived lifecycle states;
+- custom recipe authoring with blocking validation summaries;
+- substitutions that preserve an audit trail and invalidate prior verification;
+- baking-vessel and high-protein-bake feasibility checks;
+- immutable built-in recipe migration records;
+- structured JSON import with record-level errors;
+- recipe version history, cloning and rollback;
+- storage schema v3 and backup support for custom recipe histories.
 
 Detailed plan: [`phase-2-recipe-engine.md`](superpowers/plans/phase-2-recipe-engine.md)
 
