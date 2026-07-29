@@ -2,7 +2,7 @@
 
 **Status:** Canonical product roadmap  
 **Last updated:** 29 July 2026  
-**Current production baseline:** Phase 2 / v1.2.0 — hardened local-first PWA with audited built-in recipes, serving scaling, training-aware planning, versioned custom recipe authoring and deterministic macro verification.
+**Current production baseline:** Phase 3 / v1.3.0 — local-first meal-prep PWA with verified recipe authoring, training-aware planning, pantry-aware shopping, package recommendations and dated AUD cost tracking.
 
 ## Product mission
 
@@ -25,8 +25,8 @@ PrepPilot is Cameron's dependable meal-prep operating system: a fast mobile-firs
 | 0 | Release hardening and production validation | Complete | Baseline |
 | 1 | Serving scaling, target tolerances and run-day planning | Complete | Phase 0 |
 | 2 | Recipe authoring, substitutions and macro engine | Complete | Phase 1 |
-| 3 | Pantry, advanced shopping and cost tracking | Next | Phase 2 |
-| 4 | Accounts, cloud sync and data portability | Planned | Phase 3 |
+| 3 | Pantry, advanced shopping and cost tracking | Complete | Phase 2 |
+| 4 | Accounts, cloud sync and data portability | Next | Phase 3 |
 | 5 | AI meal planning and nutrition auditing | Planned | Phase 4 |
 | 6 | Garmin, progress and health integrations | Planned | Phase 4 |
 | 7 | Polish, accessibility, performance and maintenance | Continuous | All phases |
@@ -45,26 +45,27 @@ Detailed plan: [`phase-1-scaling-run-days.md`](superpowers/plans/phase-1-scaling
 
 ## Completed Phase 2 — Recipe authoring and macro engine
 
-Delivered:
-
-- normalized ingredient/product records with brand, state, basis, source hierarchy and effective date;
-- per-100 g, per-100 mL, per-unit and per-package calculation support;
-- bottom-up ingredient audit tables and batch/per-serving macro totals;
-- calorie reconciliation with a blocking threshold above 5%;
-- draft, calculation-complete, culinary-reviewed, ingredient-verified and archived lifecycle states;
-- custom recipe authoring with blocking validation summaries;
-- substitutions that preserve an audit trail and invalidate prior verification;
-- baking-vessel and high-protein-bake feasibility checks;
-- immutable built-in recipe migration records;
-- structured JSON import with record-level errors;
-- recipe version history, cloning and rollback;
-- storage schema v3 and backup support for custom recipe histories.
+Delivered normalized ingredient records, deterministic bottom-up calculation, calorie reconciliation, versioned publication gates, substitutions, culinary checks, structured imports and storage schema v3.
 
 Detailed plan: [`phase-2-recipe-engine.md`](superpowers/plans/phase-2-recipe-engine.md)
 
-## Phase 3 — Pantry, advanced shopping and cost tracking
+## Completed Phase 3 — Pantry, shopping and costs
 
-Pantry inventory, expiry and preferred brands; transparent stock deductions; manual items; aliases and non-merge rules; package sizing; AUD recipe and weekly costs with dated price sources; waste and leftovers.
+Delivered:
+
+- canonical shopping identities with explicit state, brand and variant separation;
+- user-approved alias rules and unresolved identity handling;
+- pantry inventory with add, consume, adjust, discard, archive and movement history;
+- expiry warnings and pantry-first recipe matching;
+- gross requirement, pantry deduction and net purchase calculations;
+- per-item pantry deduction overrides and non-negative net quantities;
+- manual and recurring shopping items with persistent check state;
+- package-size optimisation that minimises excess before cost;
+- dated AUD price records with retailer and source metadata;
+- known, estimated, stale and missing price coverage;
+- ingredient, recipe, serving and shopping-list cost primitives;
+- waste event logging and estimated waste-cost support;
+- storage schema v4 and backup coverage for all Phase 3 records.
 
 Detailed plan: [`phase-3-pantry-costs.md`](superpowers/plans/phase-3-pantry-costs.md)
 
