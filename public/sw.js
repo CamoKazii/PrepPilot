@@ -1,6 +1,52 @@
-const CACHE='preppilot-v2';
+const CACHE='preppilot-v6';
 const CORE=['./','./index.html','./manifest.webmanifest'];
-self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(CORE))));
-self.addEventListener('message',event=>{if(event.data?.type==='SKIP_WAITING')self.skipWaiting()});
-self.addEventListener('activate',event=>event.waitUntil(Promise.all([self.clients.claim(),caches.keys().then(keys=>Promise.all(keys.filter(key=>key!==CACHE).map(key=>caches.delete(key))))])));
-self.addEventListener('fetch',event=>{if(event.request.method!=='GET')return;const url=new URL(event.request.url);if(url.origin!==location.origin)return;event.respondWith((async()=>{const cached=await caches.match(event.request);if(cached)return cached;try{const response=await fetch(event.request);if(response.ok){const cache=await caches.open(CACHE);cache.put(event.request,response.clone())}return response}catch{if(event.request.mode==='navigate')return caches.match('./index.html');return Response.error()}})())});
+
+self.addEventListener('install',event=>event.waitUntil(
+  caches.open(CACHE).then(cache=>cache.addAll(CORE)).then(()=>self.skipWaiting())
+));
+
+self.addEventListener('message',event=>{
+  if(event.data?.type==='SKIP_WAITING')self.skipWaiting();
+});
+
+self.addEventListener('activate',event=>event.waitUntil(Promise.all([
+  self.clients.claim(),
+  caches.keys().then(keys=>Promise.all(keys.filter(key=>key!==CACHE).map(key=>caches.delete(key))))
+])));
+
+async function networkFirstNavigation(request){
+  try{
+    const response=await fetch(request,{cache:'no-store'});
+    if(response.ok){
+      const cache=await caches.open(CACHE);
+      await cache.put('./index.html',response.clone());
+    }
+    return response;
+  }catch{
+    return (await caches.match('./index.html'))||Response.error();
+  }
+}
+
+async function cacheFirstAsset(request){
+  const cached=await caches.match(request);
+  if(cached)return cached;
+  try{
+    const response=await fetch(request);
+    if(response.ok){
+      const cache=await caches.open(CACHE);
+      await cache.put(request,response.clone());
+    }
+    return response;
+  }catch{
+    return Response.error();
+  }
+}
+
+self.addEventListener('fetch',event=>{
+  if(event.request.method!=='GET')return;
+  const url=new URL(event.request.url);
+  if(url.origin!==location.origin)return;
+  event.respondWith(event.request.mode==='navigate'
+    ?networkFirstNavigation(event.request)
+    :cacheFirstAsset(event.request));
+});
