@@ -1,0 +1,13 @@
+import test from'node:test';
+import assert from'node:assert/strict';
+import{identityKey,canMerge,approveAlias}from'../src/domain/shopping/ingredientIdentity.js';
+import{calculatePurchases}from'../src/domain/shopping/calculatePurchases.js';
+import{recommendPackages}from'../src/domain/shopping/packages.js';
+import{calculateCostSummary,priceStatus}from'../src/domain/costs/calculateCosts.js';
+import{addPantryItem,consumePantryItem,discardPantryItem,expiryStatus}from'../src/domain/pantry/inventory.js';
+
+test('ingredient identity respects state and approved aliases',()=>{assert.equal(canMerge({name:'Greek yoghurt',state:'packaged'},{name:'Greek yogurt',state:'packaged'}),false);const aliases=approveAlias({},'Greek yogurt','Greek yoghurt');assert.equal(identityKey({name:'Greek yogurt',state:'packaged'},aliases),identityKey({name:'Greek yoghurt',state:'packaged'},aliases));assert.equal(canMerge({name:'Rice',state:'dry'},{name:'Rice',state:'cooked'}),false)});
+test('pantry deductions are compatible, visible and non-negative',()=>{const result=calculatePurchases([{name:'Chicken breast',state:'raw',quantity:1000,unit:'g'}],[{name:'Chicken breast',state:'raw',quantity:400,unit:'g'}]);assert.deepEqual(result[0],{name:'Chicken breast',state:'raw',quantity:1000,unit:'g',identity:'chicken breast::raw',gross:1000,deduction:400,net:600});const disabled=calculatePurchases([{name:'Chicken breast',state:'raw',quantity:100,unit:'g'}],[{name:'Chicken breast',state:'raw',quantity:500,unit:'g'}],{disabledDeductions:['chicken breast::raw']});assert.equal(disabled[0].net,100)});
+test('package optimiser minimises excess then cost',()=>{const result=recommendPackages(750,[{size:500,price:7},{size:250,price:4},{size:1000,price:11}]);assert.equal(result.total,750);assert.equal(result.excess,0);assert.equal(result.cost,11)});
+test('cost engine reports AUD coverage and stale observations',()=>{const summary=calculateCostSummary([{identity:'oats',net:500},{identity:'milk',net:1000}],[{identity:'oats',packageSize:1000,price:4,observedAt:'2026-07-20'}]);assert.equal(summary.total,2);assert.equal(summary.coverage,50);assert.equal(summary.missing,1);assert.equal(priceStatus({observedAt:'2026-01-01'},new Date('2026-07-29')),'stale')});
+test('pantry movements maintain history and expiry state',()=>{let items=addPantryItem([],{id:'p1',name:'Milk',quantity:1000,unit:'mL',expiresAt:'2026-07-31'},'2026-07-29T00:00:00Z');items=consumePantryItem(items,'p1',250,'2026-07-29T01:00:00Z');items=discardPantryItem(items,'p1',100,'2026-07-29T02:00:00Z');assert.equal(items[0].quantity,650);assert.equal(items[0].history.length,3);assert.equal(expiryStatus(items[0],new Date('2026-07-29')),'soon')});
