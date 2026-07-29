@@ -5,7 +5,7 @@ import fs from 'node:fs';
 const source=fs.readFileSync(new URL('../public/sw.js',import.meta.url),'utf8');
 
 test('service worker uses a release-specific cache',()=>{
-  assert.match(source,/const CACHE='preppilot-v6'/);
+  assert.match(source,/const CACHE='preppilot-v7'/);
 });
 
 test('document navigation is network-first to avoid stale Pages bundles',()=>{
