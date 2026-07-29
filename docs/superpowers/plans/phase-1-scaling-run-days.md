@@ -1,86 +1,73 @@
 # Phase 1 Scaling and Run-Day Planning Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development or superpowers:executing-plans.
+**Status:** Implemented on `phase-1-scaling-run-days`  
+**Release:** PrepPilot v1.1.0
 
 **Goal:** Make recipe scaling and weekly planning accurately reflect serving needs, macro tolerances and training-day carbohydrate shifts.
 
-**Architecture:** Add pure quantity and target engines first, then build recipe and planner UI on top. Canonical recipe records remain five-serving audited sources; scaled views are derived, not re-verified source records.
+## Delivered
 
-**Tech Stack:** React, Vite, Node tests, existing local-first repositories.
+### Quantity scaling domain
 
-## Global Constraints
+- Parses supported Australian metric quantities, ranges, fractions and count units.
+- Scales from canonical to requested servings.
+- Formats g/kg and mL/L sensibly.
+- Retains unsupported free-text quantities with a visible manual-check warning.
+- Keeps canonical per-serving macros unchanged while scaling batch totals.
 
-- Current targets: 2,150 kcal, at least 160 g protein, 210 g carbohydrate, 70 g fat.
-- Normal tolerances: calories ±75 kcal, carbohydrates ±15 g, fat ±7 g; protein is a minimum.
-- Quality/long-run days shift 30–40 g carbohydrate deliberately and visibly.
-- Scaling must preserve Australian metric and ingredient state.
+### Recipe scaling UI
 
-### Task 1: Quantity scaling domain
+- Common presets and validated custom serving counts from 1–20.
+- Scaled ingredients and total batch macros.
+- Clear derived-value labelling tied to the audited canonical recipe.
+- Scaled recipe records can be sent to shopping.
 
-**Files:** Create `src/domain/quantities/scale.js`, `format.js`, tests.
+### Target evaluation
 
-- Parse numeric metric quantities, ranges and supported count units.
-- Scale from canonical servings to requested servings.
-- Preserve unsupported free-text quantities with an explicit warning.
-- Format sensible g/kg and mL/L outputs without altering the calculation basis.
-- Test decimal, range, unit and unsupported cases.
+- Exact calorie, protein, carbohydrate and fat differences.
+- Calories ±75 kcal, carbohydrate ±15 g and fat ±7 g tolerances.
+- Protein remains a strict minimum of 160 g.
+- Incomplete days are never assessed as on target.
+- Machine-readable statuses and human-readable explanations.
 
-### Task 2: Recipe scaling UI
+### Training-day model
 
-**Files:** Create `src/features/recipes/ServingControl.jsx`; modify recipe detail and shopping adapters.
+- Rest, easy run, quality run, long run, futsal and custom types.
+- Quality and long-run shifts constrained to 30–40 g carbohydrate.
+- Adjustments are shown separately from base targets.
+- The app explicitly states that weekly energy is not changed automatically.
 
-- Support common serving presets and validated custom counts.
-- Scale ingredient quantities and total batch macros.
-- Keep per-serving macros unchanged unless the user changes portion definition.
-- Clearly label scaled values as derived from the verified canonical recipe.
-- Add selected scale to planner/shopping records.
+### Planner integration
 
-### Task 3: Target evaluation engine
+- Backward-compatible planner slot migration from recipe strings to `{id, servings}`.
+- Day-type and carb-shift controls.
+- Daily variance and accessible status messaging.
+- Copy-day and reusable week-template controls.
+- Planner-to-shopping uses unique scaled batch records.
 
-**Files:** Create `src/domain/nutrition/targets.js`, tests.
+### Verified snack catalogue
 
-- Return exact differences and statuses for calories, protein, carbohydrate and fat.
-- Never label a day on target outside configured tolerances.
-- Distinguish incomplete days from complete-day assessment.
-- Expose machine-readable status and human-readable explanation.
+- Five snacks with exact ingredients, assumptions and ingredient-verified macros.
+- Gap ranking recalculates the entire updated day.
+- Suggestions disclose whether they fully resolve tolerance gaps.
+- Snacks can be added to planner days.
 
-### Task 4: Training-day model
+### Persistence and release
 
-**Files:** Create `src/domain/training/dayTypes.js`, profile settings and tests.
+- Storage schema advanced to version 2.
+- Phase 0 backups remain importable.
+- Training days, planned snacks and templates are included in new backups.
+- Unit coverage added for scaling, target status, training shifts, migration and snack assessment.
 
-- Support rest, easy run, quality run, long run, futsal and custom day types.
-- Store run-day carbohydrate adjustment independently from base targets.
-- Default quality/long-run shift to a user-selected value within 30–40 g.
-- Show where carbohydrates are shifted rather than silently increasing weekly intake.
+## Acceptance criteria
 
-### Task 5: Planner integration
+- [x] Scaled quantities and batch totals remain mathematically consistent.
+- [x] Run-day targets are visible and reversible.
+- [x] Protein below 160 g never displays as acceptable.
+- [x] Snack recommendations use verified records and updated day totals.
+- [x] Legacy planner data migrates without silent loss.
+- [x] Scaled planner records generate scaled shopping quantities.
+- [ ] Post-merge production smoke test on desktop and mobile.
+- [ ] Post-merge installed/offline launch confirmation.
 
-**Files:** Refactor planner into focused components under `src/features/planner/`.
-
-- Add day type selection and adjusted target display.
-- Add exact variance cards and accessible status indicators.
-- Add copy-day, copy-week and reusable template controls.
-- Preserve existing plans through schema migration.
-
-### Task 6: Verified snack catalogue and gap suggestions
-
-**Files:** Add `src/data/snacks.*`, `src/domain/nutrition/snackSuggestions.js`, tests and UI.
-
-- Store exact ingredients and ingredient-verified snack macros.
-- Rank up to five snacks by unresolved protein/calorie/carbohydrate/fat gaps.
-- Do not claim a snack fixes a day unless recalculated day totals meet tolerances.
-- Allow suggestions to be added to a planner day and shopping list.
-
-### Task 7: Release validation
-
-- Unit-test scaling, target status and run-day adjustments.
-- E2E test scaled recipe → planner → shopping.
-- Test incomplete and out-of-tolerance days.
-- Update roadmap and user documentation.
-
-## Acceptance Criteria
-
-- Scaled quantities and batch totals remain mathematically consistent.
-- Run-day targets are visible and reversible.
-- Protein below 160 g never displays as acceptable.
-- Snack recommendations use verified records and updated day totals.
+The final two checks are operational release gates documented under the Phase 0 release process and must be completed against the deployed `main` build.
