@@ -2,7 +2,7 @@
 
 **Status:** Canonical product roadmap  
 **Last updated:** 29 July 2026  
-**Current production baseline:** Phase 5 / v1.5.0 — local-first meal-prep PWA with verified recipe authoring, training-aware planning, pantry-aware shopping, dated AUD costs, optional sync and guarded AI proposal workflows.
+**Current production baseline:** Phase 6 / v1.6.0 — local-first meal-prep PWA with verified recipes, training-aware planning, pantry and cost workflows, optional sync, guarded AI proposals, activity tracking and rolling progress trends.
 
 ## Product mission
 
@@ -14,10 +14,11 @@ PrepPilot is Cameron's dependable meal-prep operating system: a fast mobile-firs
 2. Australian metric, en-AU formatting and Australian products where possible.
 3. Protein is a mandatory floor of 160 g/day.
 4. Cooking quality cannot be sacrificed for macro optimisation.
-5. Core planning, recipes and shopping remain local-first and offline-capable.
+5. Core planning, recipes, health records and shopping remain local-first and offline-capable.
 6. Each phase must remain tested, migratable and releasable.
 7. Serving changes are derived from canonical recipes; ingredient, brand or portion-definition changes require full recalculation.
-8. Cloud and AI features remain optional and may never silently discard user data or override deterministic nutrition rules.
+8. Cloud, AI and health integrations remain optional and may never silently discard data or override deterministic nutrition rules.
+9. Health guidance is advisory, attributable and never presented as diagnosis or treatment.
 
 ## Phase status
 
@@ -29,8 +30,8 @@ PrepPilot is Cameron's dependable meal-prep operating system: a fast mobile-firs
 | 3 | Pantry, advanced shopping and cost tracking | Complete | Phase 2 |
 | 4 | Accounts, cloud sync and data portability | Complete | Phase 3 |
 | 5 | AI meal planning and nutrition auditing | Complete | Phase 4 |
-| 6 | Garmin, progress and health integrations | Next | Phase 4 |
-| 7 | Polish, accessibility, performance and maintenance | Continuous | All phases |
+| 6 | Garmin, progress and health integrations | Complete | Phase 4 |
+| 7 | Polish, accessibility, performance and maintenance | Next / Continuous | All phases |
 
 ## Completed Phase 0 — Release hardening
 
@@ -64,34 +65,34 @@ Detailed plan: [`phase-4-cloud-sync.md`](superpowers/plans/phase-4-cloud-sync.md
 
 ## Completed Phase 5 — AI planning and nutrition auditing
 
-Delivered:
-
-- strict schemas for plan, snack and recipe-draft proposals;
-- a server-side gateway contract with timeout, feature flag and no browser API secrets;
-- multiple candidate plan generation with deterministic recalculation and ranking;
-- protein-floor, calorie, carbohydrate and fat tolerance checks for every complete day;
-- exact day-level target differences, assumptions and selection reasons;
-- whole-plan or selected-day user approval before planner changes;
-- verified-snack-only ranking with recalculated totals and unresolved-gap disclosure;
-- structured recipe drafts that can only enter the authoring system as drafts;
-- prompt-injection and verification-label bypass rejection;
-- deterministic local proposals whenever AI is disabled or unavailable;
-- provider/model/version history for applied proposals;
-- storage schema v6 and privacy-safe AI history support.
-
-AI becomes operational after a secure server-side gateway is deployed and `VITE_ENABLE_AI` plus `VITE_AI_GATEWAY_URL` are configured. Without them, the same interface provides deterministic local proposals and all core features remain available.
+Delivered strict proposal schemas, deterministic candidate recalculation and ranking, explicit approval, verified-snack ranking, guarded recipe drafts, prompt-injection protection, local fallback and storage schema v6.
 
 Detailed plan: [`phase-5-ai-planning.md`](superpowers/plans/phase-5-ai-planning.md)
 
-## Phase 6 — Garmin, progress and health integrations
+## Completed Phase 6 — Training, progress and health integrations
 
-Officially supported activity/calendar import, manual fallback, weight trends, adherence summaries and training-load-informed carbohydrate guidance with source timestamps and privacy controls.
+Delivered:
+
+- provider-neutral activity and weight records with source IDs and timestamps;
+- manual activity, measurement and recovery-note entry as the permanent baseline;
+- duplicate-safe import and correction history;
+- official Garmin Activity API gateway contract behind a feature flag;
+- planner overlays with explicit confirmation of suggested day types;
+- moved/cancelled activity handling without historical data loss;
+- rolling weight averages and weekly change against the 0.3–0.4 kg/week target;
+- advisory carbohydrate ranges based on day type, duration and recent load;
+- an invariant protein floor of at least 160 g/day;
+- weekly observed-fact and suggestion summaries;
+- provider status, last-sync visibility, disconnect and imported-record deletion;
+- storage schema v7 and backup coverage for all Phase 6 records.
+
+Live Garmin sync becomes operational only after Garmin Connect Developer Program approval and deployment of an OAuth 2.0 server gateway. Manual mode requires no provider.
 
 Detailed plan: [`phase-6-health-integrations.md`](superpowers/plans/phase-6-health-integrations.md)
 
 ## Phase 7 — Quality and maintenance
 
-Continuous WCAG 2.2 AA work, keyboard/screen-reader support, performance budgets, code splitting, visual regression, browser matrix, dependency/security maintenance and privacy-respecting product-health metrics.
+Continuous WCAG 2.2 AA work, keyboard and screen-reader support, performance budgets, code splitting, visual regression, browser matrix, dependency/security maintenance and privacy-respecting product-health metrics.
 
 Detailed plan: [`phase-7-quality-maintenance.md`](superpowers/plans/phase-7-quality-maintenance.md)
 
@@ -99,13 +100,14 @@ Detailed plan: [`phase-7-quality-maintenance.md`](superpowers/plans/phase-7-qual
 
 - `src/app/` — routing, providers and shell
 - `src/features/recipes/` — catalogue, detail, scaling and authoring
-- `src/features/planner/` — weekly planning, targets and training logic
+- `src/features/planner/` — weekly planning, targets and training overlays
 - `src/features/ai/` — guarded proposals, review and approval
+- `src/features/health/` — activity, progress, recovery and integration controls
 - `src/features/shopping/` — consolidation, pantry and cost logic
 - `src/features/profile/` — targets, backups and integrations
 - `src/features/account/` — authentication, sync controls, conflicts and portability
-- `src/domain/` — pure nutrition, quantity and validation rules
-- `src/data/` — repositories, migrations and persistence adapters
+- `src/domain/` — pure nutrition, quantity, training, trend and validation rules
+- `src/data/` — repositories, migrations, persistence and provider adapters
 - `tests/` — unit, integration and end-to-end coverage
 
 Domain calculations remain pure and authoritative. UI, AI and integrations consume those rules rather than replacing them.
@@ -120,4 +122,4 @@ Domain calculations remain pure and authoritative. UI, AI and integrations consu
 
 ## Explicitly out of scope until justified
 
-Public social features, marketplace/subscriptions, medical diagnosis, automatic grocery purchasing, autonomous recipe publication, and data access that violates supermarket or Garmin terms.
+Public social features, marketplace/subscriptions, medical diagnosis, automatic grocery purchasing, autonomous recipe publication, and data access that violates supermarket, Garmin or other provider terms.
