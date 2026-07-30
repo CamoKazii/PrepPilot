@@ -5,12 +5,13 @@ export function SkipLink(){return <a className="skip-link" href="#main-content">
 
 export function RouteAccessibility(){
   const location=useLocation();
-  const headingRef=useRef(null);
+  const initialRender=useRef(true);
   useEffect(()=>{
     const timer=requestAnimationFrame(()=>{
       const heading=document.querySelector('#main-content h1');
-      if(heading){heading.setAttribute('tabindex','-1');heading.focus({preventScroll:true});headingRef.current=heading}
       document.title=`${heading?.textContent||'PrepPilot'} · PrepPilot`;
+      if(initialRender.current){initialRender.current=false;return}
+      if(heading){heading.setAttribute('tabindex','-1');heading.focus({preventScroll:true})}
     });
     return()=>cancelAnimationFrame(timer);
   },[location.pathname]);
