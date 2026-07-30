@@ -22,7 +22,7 @@ jobs:
       - run: npm run quality:bundle
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e -- --project=desktop-chromium --project=mobile-chromium
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: failure()
         with:
           name: playwright-report
