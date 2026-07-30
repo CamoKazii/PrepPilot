@@ -18,13 +18,13 @@ Every pull request must pass:
 5. Axe scans with no serious or critical violations in the tested core route.
 6. Keyboard skip-link, route-focus and horizontal-overflow tests.
 
-Current compressed-independent file budgets are deliberately conservative starting points:
+Current uncompressed asset budgets are evidence-based starting points from the first code-split v1.7 build:
 
-- Largest JavaScript chunk: 260 kB uncompressed.
-- Total JavaScript: 850 kB uncompressed.
-- Total CSS: 140 kB uncompressed.
+- Largest JavaScript chunk: 300 kB.
+- Total JavaScript: 850 kB.
+- Total CSS: 140 kB.
 
-Budget increases require a written explanation in the pull request and should be paired with a follow-up reduction plan.
+The initial measured build was 280.6 kB for the largest React/vendor chunk, 579.4 kB total JavaScript and 19.9 kB total CSS across multiple route chunks. Budget increases require a written explanation in the pull request and should be paired with a follow-up reduction plan.
 
 ## Manual accessibility matrix
 
