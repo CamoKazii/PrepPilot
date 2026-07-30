@@ -1,0 +1,5 @@
+const ALLOWED_TYPES=new Set(['app-load-failure','route-load-failure','sync-failure','integration-failure','ai-gateway-failure']);
+const BLOCKED_KEYS=/note|ingredient|recipe|planner|weight|measurement|health|email|token|name/i;
+export function sanitiseDiagnostic(event={}){const type=ALLOWED_TYPES.has(event.type)?event.type:'route-load-failure';const safe={type,version:String(event.version||'unknown'),feature:String(event.feature||'core').slice(0,40),code:String(event.code||'unknown').slice(0,60),at:event.at||new Date().toISOString()};for(const key of Object.keys(event))if(BLOCKED_KEYS.test(key))delete safe[key];return safe}
+export function recordDiagnostic(event,storage=localStorage){const settings=JSON.parse(storage.getItem('preppilot-diagnostics-settings')||'{"enabled":false}');if(!settings.enabled)return false;const current=JSON.parse(storage.getItem('preppilot-diagnostics')||'[]');const next=[...current,sanitiseDiagnostic(event)].slice(-100);storage.setItem('preppilot-diagnostics',JSON.stringify(next));return true}
+export function clearDiagnostics(storage=localStorage){storage.removeItem('preppilot-diagnostics')}
